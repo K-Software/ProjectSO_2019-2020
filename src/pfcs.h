@@ -1,9 +1,8 @@
 /* -------------------------------------------------------------------------- */
 /* pfcs.h                                                                     */
 /* -------------------------------------------------------------------------- */
-void init(void);
+void pfcsInit(void);
 void createPFCS(char *path);
-void pfc(int numPFC);
 void pfc01(void);
 void pfc02(void);
 void pfc03(void);

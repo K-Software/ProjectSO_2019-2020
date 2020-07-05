@@ -1,11 +1,13 @@
 /* -------------------------------------------------------------------------- */
-/* gpgll.c                                                                    */
+/* log.c                                                                      */
 /* -------------------------------------------------------------------------- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
+#include <unistd.h>
+#include "common.h"
 #include "log.h"
 
 /* -------------------------------------------------------------------------- */
@@ -13,7 +15,6 @@
 /* -------------------------------------------------------------------------- */
 #define PATH_LOG "./log/"
 #define EXT_LOG ".log"
-#define MAX_ROW_LEN 200 /* Max length of row of log file */
 #define PREFIX_LEN 25
 
 /* -------------------------------------------------------------------------- */
@@ -52,25 +53,24 @@ int addLog(char *id, char *msg)
   char *fileName = buildFileName(id);
 
   /* Add control on length of message */
-  if (strlen(msg) > MAX_ROW_LEN) {
-    return 1;                   /* Message too long */
+  if (strlen(msg) > MAX_ROW_LEN_LOG) {
+    return 1;                                             /* Message too long */
   }
 
-  /* Open the log file in append mode */
-  fpLog = fopen(fileName, "a");
+  fpLog = fopen(fileName, "a");           /* Open the log file in append mode */
   if (fpLog == NULL) {
     free(fileName);
-    return 2;                   /* Occur error during opening file */
+    return 2;                    /* Occur an error during the opening of file */
   }
 
-  char *tmpMsg = enrichMsg(msg); /* Enrich the message */
+  char *tmpMsg = enrichMsg(msg);                        /* Enrich the message */
 
   /* Write log message */
   if (fputs(tmpMsg, fpLog) == EOF ) {
     free(tmpMsg);
     free(fileName);
     fclose(fpLog);
-    return 3;                   /* Occur error during writing file */
+    return 3;                    /* Occur an error during the writing of file */
   };
 
   free(tmpMsg);
@@ -78,6 +78,29 @@ int addLog(char *id, char *msg)
   fclose(fpLog);
   return 0;
 }
+
+/*
+ * DESCRIPTION
+ * This function removes a specific log file.
+ *
+ * PARAMETERS
+ * - id = Identifier of the log file
+ *
+ * RETURN VALUES
+ * Upon successful completion, removeLog returns 0. Otherwise, return a value
+ * different than 0.
+ * If return 1 there was an error during the removing of log file.
+ */
+int removeLog(char *id)
+{
+  char *fileName = buildFileName(id);
+
+  if (unlink(fileName) == -1) {                            /* Remove log file */
+    return 1;                  /* Occur an error during  the removing of file */
+  };
+  return 0;
+}
+
 
 /*
  * DESCRIPTION

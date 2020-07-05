@@ -1,6 +1,7 @@
 /* -------------------------------------------------------------------------- */
-/* gpgll.h                                                                    */
+/* log.h                                                                      */
 /* -------------------------------------------------------------------------- */
-int addLog(char *argc, char *argv);
+int addLog(char *id, char *msg);
+int removeLog(char *id);
 char* buildFileName(char *id);
 char* enrichMsg(char *msg);
