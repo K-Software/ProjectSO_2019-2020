@@ -1,85 +1,113 @@
 # ---------------------------------------------------------------------------- #
 # project.out
 # ---------------------------------------------------------------------------- #
-bin/project.out: src/project.c bin/mathgps.o bin/log.o bin/pfcs_util.o\
-bin/gpgll.o bin/string_util.o bin/time_util.o bin/pipe_channel.o\
-bin/socket_channel.o bin/file_channel.o bin/pfcs.o bin/transducers.o
-	cc src/project.c bin/mathgps.o bin/log.o bin/pfcs_util.o bin/gpgll.o bin/string_util.o bin/time_util.o bin/pipe_channel.o bin/socket_channel.o bin/file_channel.o bin/pfcs.o bin/transducers.o -o bin/project.out
+project.out: src/project.c mathgps.o log.o pfcs_util.o gpgll.o string_util.o\
+time_util.o process_util.o shifter_util.o pipe_channel.o socket_channel.o\
+file_channel.o pfcs.o transducers.o wes.o failure_generator.o
+	cc $^ -o $@
+
+# ---------------------------------------------------------------------------- #
+# failure_generator.o
+# ---------------------------------------------------------------------------- #
+failure_generator.o: src/failure_generator.c
+	cc -c $^ -o $@
+
+# ---------------------------------------------------------------------------- #
+# wes.o
+# ---------------------------------------------------------------------------- #
+wes.o: src/wes.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # transducers.o
 # ---------------------------------------------------------------------------- #
-bin/transducers.o: src/transducers.c
-	cc -c src/transducers.c -o bin/transducers.o
+transducers.o: src/transducers.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # pfcs.o
 # ---------------------------------------------------------------------------- #
-bin/pfcs.o: src/pfcs.c
-	cc -c src/pfcs.c -o bin/pfcs.o
+pfcs.o: src/pfcs.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # pfcs_util.o
 # ---------------------------------------------------------------------------- #
-bin/pfcs_util.o: src/pfcs_util.c
-	cc -c src/pfcs_util.c -o bin/pfcs_util.o
-
-# ---------------------------------------------------------------------------- #
-# velocity_util.o
-# ---------------------------------------------------------------------------- #
-#bin/velocity_util.o: src/velocity_util.c
-#	cc -c src/velocity_util.c -o bin/velocity_util.o
+pfcs_util.o: src/pfcs_util.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # pipe_channel.o
 # ---------------------------------------------------------------------------- #
-bin/pipe_channel.o: src/pipe_channel.c
-	cc -c src/pipe_channel.c -o bin/pipe_channel.o
+pipe_channel.o: src/pipe_channel.c
+	cc -c $< -o $@
 
 # ---------------------------------------------------------------------------- #
 # socket_channel.o
 # ---------------------------------------------------------------------------- #
-bin/socket_channel.o: src/socket_channel.c
-	cc -c src/socket_channel.c -o bin/socket_channel.o
+socket_channel.o: src/socket_channel.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # file_channel.o
 # ---------------------------------------------------------------------------- #
-bin/file_channel.o: src/file_channel.c
-	cc -c src/file_channel.c -o bin/file_channel.o
-
-# ---------------------------------------------------------------------------- #
-# gpgll.out
-# ---------------------------------------------------------------------------- #
-#bin/gpgll.out: bin/log.o bin/gpgll.o
-#	cc bin/log.o bin/gpgll.o -o bin/gpgll.out
+file_channel.o: src/file_channel.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # gpgll.o
 # ---------------------------------------------------------------------------- #
-bin/gpgll.o: src/gpgll.c src/gpgll.h
-	cc -c src/gpgll.c -o bin/gpgll.o
+gpgll.o: src/gpgll.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # log.o
 # ---------------------------------------------------------------------------- #
-bin/log.o: src/log.c src/log.h
-	cc -c src/log.c -o bin/log.o
+log.o: src/log.c
+	cc -c $^ -o $@
+
+# ---------------------------------------------------------------------------- #
+# shifter_util.o
+# ---------------------------------------------------------------------------- #
+shifter_util.o: src/shifter_util.c
+	cc -c $^ -o $@
+
+# ---------------------------------------------------------------------------- #
+# process_util.o
+# ---------------------------------------------------------------------------- #
+process_util.o: src/process_util.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # string_util.o
 # ---------------------------------------------------------------------------- #
-bin/string_util.o: src/string_util.c
-	cc -c src/string_util.c -o bin/string_util.o
+string_util.o: src/string_util.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # time_util.o
 # ---------------------------------------------------------------------------- #
-bin/time_util.o: src/time_util.c
-	cc -c src/time_util.c -o bin/time_util.o
+time_util.o: src/time_util.c
+	cc -c $^ -o $@
 
 # ---------------------------------------------------------------------------- #
 # mathgps.o
 # ---------------------------------------------------------------------------- #
-bin/mathgps.o: src/mathgps.c
-	cc -c src/mathgps.c -o bin/mathgps.o
+mathgps.o: src/mathgps.c
+	cc -c $^ -o $@
+
+clean:
+	rm project.out failure_generator.o wes.o transducers.o pfcs.o pfcs_util.o\
+  pipe_channel.o socket_channel.o file_channel.o gpgll.o log.o shifter_util.o\
+  process_util.o string_util.o time_util.o mathgps.o
+
+install:
+	mkdir ./bin
+	mkdir ./log
+	mkdir ./tmp
+	cp project.out ./bin
+
+uninstall:
+	rm -rf ./bin
+	rm -rf ./log
+	rm -rf ./tmp

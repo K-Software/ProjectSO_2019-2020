@@ -5,13 +5,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "common.h"
 #include "gpgll.h"
 #include "log.h"
 
 /* -------------------------------------------------------------------------- */
 /* Macro                                                                      */
 /* -------------------------------------------------------------------------- */
-#define MAX_ROW_LEN 100 /* Max length of row of file G18.txt */
 #define PATH_GPGLL "./data/GPGLL.txt"
 #define PATH_GPGLL_TMP "./tmp/GPGLL.tmp"
 #define LOG_GPGLL "GPGLL"
@@ -41,7 +41,7 @@
 #ifdef DEBUG
 int main(int argc, char *argv[])
 {
-  char row[MAX_ROW_LEN];
+  char row[MAX_ROW_LEN_G18];
   GPGLLInit(argv[1]);
   printf("pop: %s\n", GPGLLPop(row));
   printf("pop: %s\n", GPGLLPop(row));
@@ -67,7 +67,7 @@ int GPGLLInit (char *path)
 {
   FILE *fpG18;
   FILE *fpGPGLL;
-  char row[MAX_ROW_LEN];
+  char row[MAX_ROW_LEN_G18];
 
   fpG18 = fopen(path, "r");         /* Open the file G18.txt in read mode */
   if (fpG18 == NULL) {
@@ -85,7 +85,7 @@ int GPGLLInit (char *path)
 
   /* If row start with $GPGLL puts the row inside the file GPGLL.txt */
   int iRows = 0;
-  while (fgets(row, MAX_ROW_LEN, fpG18) != NULL) {
+  while (fgets(row, MAX_ROW_LEN_G18, fpG18) != NULL) {
     if (strncmp(row, "$GPGLL", 6) == 0) {
       fputs(row, fpGPGLL);
       iRows++;
@@ -120,7 +120,7 @@ char* GPGLLPop(char *row)
   FILE *fpGPGLL;
   FILE *fpTmp;
   int status;
-  char rowTmp[MAX_ROW_LEN];
+  char rowTmp[MAX_ROW_LEN_G18];
 
   fpGPGLL = fopen(PATH_GPGLL, "r"); /* Open the file GPGLL in read mode */
   if (fpGPGLL == NULL) {
@@ -144,7 +144,7 @@ char* GPGLLPop(char *row)
   }
   addLog(LOG_GPGLL, MSG_POP_OPEN_FILE_TMP);
 
-  fgets(row, MAX_ROW_LEN, fpGPGLL);
+  fgets(row, MAX_ROW_LEN_G18, fpGPGLL);
   if (feof(fpGPGLL)) {
     addLog(LOG_GPGLL, MSG_POP_EOF);
 
@@ -160,7 +160,7 @@ char* GPGLLPop(char *row)
     addLog(LOG_GPGLL, msgTmp);
     free(msgTmp);
 
-    while (fgets(rowTmp, MAX_ROW_LEN, fpGPGLL) != NULL) {
+    while (fgets(rowTmp, MAX_ROW_LEN_G18, fpGPGLL) != NULL) {
       fputs(rowTmp, fpTmp);
     }
 

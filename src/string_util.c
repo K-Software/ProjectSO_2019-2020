@@ -12,6 +12,42 @@
 /* -------------------------------------------------------------------------- */
 /* Functions                                                                  */
 /* -------------------------------------------------------------------------- */
+
+/*
+ * DESCRIPTION
+ * ...
+ *
+ * PARAMETERS
+ * ...
+ *
+ * RETURN VALUES
+ * ...
+ */
+void generateUuid(char *uuid)
+{
+  uuid_t binuuid;
+  uuid_generate_random(binuuid);
+  uuid_unparse_upper(binuuid, uuid);
+}
+
+/*
+ * DESCRIPTION
+ * ...
+ *
+ * PARAMETERS
+ * ...
+ *
+ * RETURN VALUES
+ * ...
+ */
+char* buildLogMsg(char *msg, char *sPrefix, char *sBody)
+{
+  strcpy(msg, sPrefix);
+  strcat(msg, "::");
+  strcat(msg, sBody);
+  return msg;
+}
+
 /*
  * DESCRIPTION
  * This function builds the message with UUID follow by the content of the text
@@ -27,13 +63,9 @@
  */
 char* buildUuidMsg(char *msg, char *text)
 {
-  uuid_t binuuid;
   char uuid[UUID_LEN];
-  uuid_generate_random(binuuid);
-  uuid_unparse_upper(binuuid, uuid);
-  strcpy(msg, uuid);
-  strcat(msg, "::");
-  strcat(msg, text);
+  generateUuid(uuid);
+  buildLogMsg(msg, uuid, text);
   return msg;
 }
 
@@ -69,15 +101,15 @@ int getSubStr(char *source, char *target,int from, int to)
     length++;
 
   if(from<0 || from>length) {
-    return 1; /* Invalid 'from' index" */
+    return 1;                                        /* Invalid 'from' index" */
   }
 
   if(to>length) {
-    return 2; /* Invalid 'to' index */
+    return 2;                                        /* Invalid 'to' index    */
   }
 
   if (from>to) {
-    return 3; /* Invalid 'from' and 'to' index */
+    return 3;                                /* Invalid 'from' and 'to' index */
   }
 
   for(i=from, j=0; i<=to; i++, j++) {
@@ -105,7 +137,7 @@ int getSubStr(char *source, char *target,int from, int to)
  */
 char* getUUID(char *uuid, char *string)
 {
-  if (getSubStr(string, uuid, 0, 35) == 0) {
+  if (getSubStr(string, uuid, 0, UUID_LEN-1) == 0) {
     return uuid;
   } else {
     return NULL;

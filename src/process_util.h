@@ -1,0 +1,15 @@
+/* -------------------------------------------------------------------------- */
+/* process_util.h                                                             */
+/* -------------------------------------------------------------------------- */
+void setPFC01Pid(int pid);
+void setPFC02Pid(int pid);
+void setPFC03Pid(int pid);
+void getPFC01Pid(char *sPid);
+void getPFC02Pid(char *sPid);
+void getPFC03Pid(char *sPid);
+void setPFC01Status(char *status);
+void setPFC02Status(char *status);
+void setPFC03Status(char *status);
+void getPFC01Status(char *status);
+void getPFC02Status(char *status);
+void getPFC03Status(char *status);

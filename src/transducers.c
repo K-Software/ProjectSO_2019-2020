@@ -8,10 +8,13 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 #include "common.h"
 #include "file_channel.h"
+#include "failure_generator.h"
 #include "log.h"
 #include "pipe_channel.h"
+#include "process_util.h"
 #include "socket_channel.h"
 #include "string_util.h"
 #include "time_util.h"
@@ -34,29 +37,58 @@
  */
 void createTranducers(void)
 {
-  char lastUuidPipe[UUID_LEN] = "START";
-  char lastUuidSocket[UUID_LEN] = "START";
   char lastUuidFile[UUID_LEN] = "START";
-  int endStream1 = 0;
-  int endStream2 = 0;
-  int endStream3 = 0;
-  int pp; /* Pipe pointer */
+  char uuid[UUID_LEN] = "";
+  char sPFC01Status[PFC_STATUS_LEN] = "";
+  char sPFC02Status[PFC_STATUS_LEN] = "";
+  char sPFC03Status[PFC_STATUS_LEN] = "";
+  int iResStream1 = 0;
+  int iResStream2 = 0;
+  int iResStream3 = 0;
+  int pp;                                                     /* Pipe pointer */
+  int iClientFp;
+  int iStatusIns = 0;
+  int iStatusEnd = 0;
+  int iPFCActive = 0;
+  char testLog[MAX_ROW_LEN_LOG];
 
   /* START */
   addLog(LOG_TRANSDUCERS, "START");
   openPipeChnnlRead(&pp);                  /* Open pipe channel in read mode  */
+
+  /* TODO: function to create socket */
+  iClientFp = socket(AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
+
   mssleep(200);
   while (1) {
-    endStream1 = readFromPipe(pp);                            /* PFC 01       */
 
-    endStream2 = readFromSocket();                            /* PFC 02       */
+    generateUuid(uuid);                                      /* Generate UUID */
 
-    endStream3 = readFromFile(lastUuidFile);                  /* PFC 03       */
-    mssleep(200);
-    if (endStream1 || endStream2 || endStream3) {
+    iResStream1 = readFromPipe(pp, uuid);                    /* PFC 01        */
+    if (iResStream1 == 1) {
+      iStatusEnd++;
+    }
+
+    iResStream2 = readFromSocket(iClientFp, uuid);           /* PFC 02        */
+    if (iResStream2 == 1) {
+      iStatusEnd++;
+    }
+
+    iResStream3 = readFromFile(lastUuidFile, uuid);          /* PFC 03        */
+    if (iResStream3 == 1) {
+      iStatusEnd++;
+    }
+
+    sprintf(testLog, "PIPE: %d, SOCKET: %d, FILE: %d",
+            iResStream1, iResStream2, iResStream3);
+    addLog(LOG_TRANSDUCERS, testLog);
+    mssleep(300);
+    if (iStatusEnd >= 3) {
       break;
     }
   }
+
+  close(iClientFp);
   closePipeChnnlRead(pp);                  /* Close pipe channel in read mode */
   addLog(LOG_TRANSDUCERS, "END");
 }
@@ -68,28 +100,39 @@ void createTranducers(void)
  *
  * PARAMETERS
  * - pipePointer = file pointer to read pipe.
+ * - uuid = ...
  *
  * RETURN VALUES
  * Upon successful completion, readFromPipe returns 0. Otherwise, return a
  * value different than 0.
  * If return 1 the stream is ended.
  */
-int readFromPipe(int pipePointer)
+int readFromPipe(int pipePointer, char *uuid)
 {
   char sVel[VELOCITY_VALUE_LEN] = "";
+  char sLogVel[MAX_ROW_LEN_LOG] = "";
   char sLogMsg[5 + VELOCITY_VALUE_LEN] = "";
+  char sLastUuidIns[UUID_LEN] = "";
   int iRes = 0;
+  char sPid[10] = "";
+  int iPid = 0;
+  int status = 0;
 
   readPipeChnnl(pipePointer, sVel);
   if (strlen(sVel) > 0) {
     getSubStr(sVel, sVel, 0, strlen(sVel) -2);
     if (strcmp(sVel, "END") == 0) {
-      iRes = 1;                                              /* End stream    */
+      iRes = 1;
+      buildLogMsg(sLogVel, uuid, END_SPEED_STREAM);
+      addLog(SPEED_PFC_01, sLogVel);                         /* End stream    */
     } else {
       sprintf(sLogMsg, "PIPE:%s", sVel);
       addLog(LOG_TRANSDUCERS, sLogMsg);
-      addLog(SPEED_PFC_01, sVel);
+      buildLogMsg(sLogVel, uuid, sVel);
+      addLog(SPEED_PFC_01, sLogVel);                         /* Log speed     */
     }
+  } else {
+    iRes = 2;
   }
   return iRes;
 }
@@ -99,16 +142,22 @@ int readFromPipe(int pipePointer)
  * This function reads the velocity from the socket channel and writes this
  * velocity in specified log file.
  *
+ * PARAMETERS
+ * - uuid = ...
+ *
  * RETURN VALUES
  * Upon successful completion, readFromSocket returns 0. Otherwise, return a
  * value different than 0.
  * If return 1 the stream is ended.
+ * If return 2 generic error.
  */
-int readFromSocket(void)
+int readFromSocket(int iClientFp, char *uuid)
 {
   char sVel[VELOCITY_VALUE_LEN] = "";
   char sLogMsg[5 + VELOCITY_VALUE_LEN] = "";
-  int iClientFp, iServerLen, iResult;
+  char sLogVel[MAX_ROW_LEN_LOG] = "";
+  char sLastUuidIns[UUID_LEN] = "";
+  int iServerLen, iResult;
   int n = 0;
   int iRes = 0;
   struct sockaddr_un serverUNIXAddress;              /* Server address        */
@@ -117,7 +166,6 @@ int readFromSocket(void)
   serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
   iServerLen = sizeof (serverUNIXAddress);
 
-  iClientFp = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
   serverUNIXAddress.sun_family = AF_UNIX;                    /* Server domain */
   strcpy (serverUNIXAddress.sun_path, PATH_SOCKET_CHANNEL);  /* Server name   */
 
@@ -135,12 +183,17 @@ int readFromSocket(void)
   if (strlen(sVel) > 0) {
     getSubStr(sVel, sVel, 0, strlen(sVel) -2);
     if (strcmp(sVel, "END") == 0) {
-      iRes = 1;                                              /* End stream    */
+      iRes = 1;
+      buildLogMsg(sLogVel, uuid, END_SPEED_STREAM);
+      addLog(SPEED_PFC_02, sLogVel);                         /* End stream    */
     } else {
       sprintf(sLogMsg, "SOCKET:%s", sVel);
       addLog(LOG_TRANSDUCERS, sLogMsg);
-      addLog(SPEED_PFC_02, sVel);
+      buildLogMsg(sLogVel, uuid, sVel);
+      addLog(SPEED_PFC_02, sLogVel);                         /* Log speed     */
     }
+  } else {
+    iRes = 2;
   }
   return iRes;
 }
@@ -152,18 +205,22 @@ int readFromSocket(void)
  *
  * PARAMETERS:
  * - previsUuid = UUID of last reader.
+ * - uuid = ...
  *
  * RETURN VALUES:
  * Upon successful completion, readFromFile return 0. Otherwise, return a value
  * different than 0.
  * if return 1 the stream is ended.
+ * If return 2 generic error.
  */
-int readFromFile(char *previsUuid)
+int readFromFile(char *previsUuid, char *uuid)
 {
   char sVel[VELOCITY_VALUE_LEN] = "";
   char sTmpStr[UUID_LEN + VELOCITY_VALUE_LEN] = "";
   char sTmpUuid[UUID_LEN] = "";
+  char sLastUuidIns[UUID_LEN] = "";
   char sLogMsg[5 + UUID_LEN + VELOCITY_VALUE_LEN] = "";
+  char sLogVel[MAX_ROW_LEN_LOG] = "";
   int iRes = 0;
   int iResRead = 0;
 
@@ -174,14 +231,17 @@ int readFromFile(char *previsUuid)
     sprintf(sLogMsg, "FILE:%s", sTmpStr);
     addLog(LOG_TRANSDUCERS, sLogMsg);
     strcpy(previsUuid, sTmpUuid);
-    getSubStr(sTmpStr, sVel,UUID_LEN + 1, strlen(sTmpStr) - 1);
+    getSubStr(sTmpStr, sVel,UUID_LEN + 2, strlen(sTmpStr) - 1);
     if (strcmp(sVel, "END") == 0) {
-      // End stream
       iRes = 1;
+      buildLogMsg(sLogVel, uuid, END_SPEED_STREAM);
+      addLog(SPEED_PFC_03, sLogVel);                         /* End stream    */
     } else {
-      // Log new velocity
-      addLog(SPEED_PFC_03, sVel);
+      buildLogMsg(sLogVel, uuid, sVel);
+      addLog(SPEED_PFC_03, sLogVel);                         /* Log speed     */
     }
+  } else {
+    iRes = 2;
   }
   return iRes;
 }

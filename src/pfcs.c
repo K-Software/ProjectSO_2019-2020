@@ -18,6 +18,8 @@
 #include "pfcs.h"
 #include "pfcs_util.h"
 #include "pipe_channel.h"
+#include "process_util.h"
+#include "shifter_util.h"
 #include "socket_channel.h"
 #include "string_util.h"
 #include "time_util.h"
@@ -25,12 +27,10 @@
 /* -------------------------------------------------------------------------- */
 /* Macro                                                                      */
 /* -------------------------------------------------------------------------- */
-#define MAX_ROW_LEN 100            /* Max length of row of file G18.txt */
-#define GPGLL_LEN 45               /* Length of GPGLL */
-#define READING_ROW_LEN UUID_LEN + MAX_ROW_LEN + 2
+#define READING_ROW_LEN UUID_LEN + MAX_ROW_LEN_G18 + 2
 #define MAX_PFC_UNITS 3
-#define READER_WAIT_TIME 1000      /* Millisecond */
-#define PFC_WAIT_TIME 250          /* Millisecond */
+#define READER_WAIT_TIME 1000                              /* Millisecond     */
+#define PFC_WAIT_TIME 250                                  /* Millisecond     */
 #define DEFAULT_PROTOCOL 0
 #define LOG_CREATOR "PFC_CREATE"
 #define LOG_READER "PFC_READER"
@@ -42,16 +42,13 @@
 #define MSG_PFC_ERROR_READ_COORD "ERROR - Error during the reading of file reading.tmp"
 #define MSG_PFC_ERROR_WRITE_VEL "ERROR - Error during writing the velocity"
 
+int iPFC01Shifter = 0;
+int iPFC02Shifter = 0;
+int iPFC03Shifter = 0;
+
 /* -------------------------------------------------------------------------- */
 /* Functions                                                                  */
 /* -------------------------------------------------------------------------- */
-
-#ifdef DEBUG
-int main(int argc, char *argv[])
-{
-  createPFCS(argv[1]);
-}
-#endif
 
 /*
  * DESCRIPTION
@@ -68,6 +65,8 @@ void createPFCS(char *path)
   int pid_01, pid_02, pid_03, pid_reader;
   char tmpMsg[strlen(MSG_CREATEPFCS_START_PROC) + 20];
 
+  signal(SIGUSR1, shifter);
+
   pfcsInit();
 
   /* Start PARENT */
@@ -77,6 +76,7 @@ void createPFCS(char *path)
 
     /* PFC 01 - PIPE CHANNEL */
     addLog(LOG_CREATOR, buildCreatePFCSStartMsg(tmpMsg, "PFC 01"));
+    setPFC01Pid(getpid());
     pfc01();
     addLog(LOG_CREATOR, buildCreatePFCSFinishMsg(tmpMsg, "PFC 01"));
   } else {
@@ -85,6 +85,7 @@ void createPFCS(char *path)
 
       /* PFC 02 - SOCKET CHANNEL */
       addLog(LOG_CREATOR, buildCreatePFCSStartMsg(tmpMsg, "PFC 02"));
+      setPFC02Pid(getpid());
       pfc02();
       addLog(LOG_CREATOR, buildCreatePFCSFinishMsg(tmpMsg, "PFC 02"));
     } else {
@@ -93,6 +94,7 @@ void createPFCS(char *path)
 
         /* PFC 03 - FILE CHANNEL */
         addLog(LOG_CREATOR, buildCreatePFCSStartMsg(tmpMsg, "PFC 03"));
+        setPFC03Pid(getpid());
         pfc03();
         addLog(LOG_CREATOR, buildCreatePFCSFinishMsg(tmpMsg, "PFC 03"));
       } else {
@@ -134,11 +136,11 @@ void pfcsInit(void)
  */
 void pfc01(void)
 {
-  char uuid_old[UUID_LEN] = "";
-  char uuid_new[UUID_LEN] = "";
+  char uuid_old[UUID_LEN + 1] = "";
+  char uuid_new[UUID_LEN + 1] = "";
   char gpgll_A[GPGLL_LEN] = "";
   char gpgll_B[GPGLL_LEN] = "";
-  char coord[MAX_ROW_LEN] = "";
+  char coord[MAX_ROW_LEN_G18] = "";
   char logMsg[MAX_ROW_LEN_LOG] = "";
   double dDist = 0;
   double dVel = 0;
@@ -147,10 +149,10 @@ void pfc01(void)
     if (readCoord(coord) == NULL) {
       addLogPFC(1, MSG_PFC_ERROR_READ_COORD);
     } else {
-      getUUID(uuid_new, coord);   /* Get UUID */
-      getGPGLL(gpgll_B, coord);   /* Get GPGLL */
+      getUUID(uuid_new, coord);                                  /* Get UUID  */
+      getGPGLL(gpgll_B, coord);                                  /* Get GPGLL */
       if (strcmp("END", gpgll_B) == 0) {
-        addLogPFC(1, "END");
+        addLogPFC(PIPE_CHANNEL, "END");
         closePipeChnnlWrite();
         break;
       }
@@ -158,8 +160,8 @@ void pfc01(void)
 
         /* ACTION */
         if (strcmp("START",gpgll_B) != 0) {
-          addLogPFC(1, gpgll_A);
-          addLogPFC(1, gpgll_B);
+          addLogPFC(PIPE_CHANNEL, gpgll_A);
+          addLogPFC(PIPE_CHANNEL, gpgll_B);
           if (strlen(gpgll_A) == 44) {
             dDist = distanceBetweenEarthCoordinates(getLat(gpgll_A),
                                                     getLon(gpgll_A),
@@ -170,10 +172,14 @@ void pfc01(void)
             dDist = 0;
             dVel = 0;
           }
+          if (iPFC01Shifter) {
+            dVel = shifterSpeed(dVel);
+            iPFC01Shifter = 0;
+          }
           sprintf(logMsg, "Dist: %f m - Vel: %f km/h\n", dDist, dVel);
-          addLogPFC(1, logMsg);
+          addLogPFC(PIPE_CHANNEL, logMsg);
           if (writePipeChnnl(dVel) > 0) {
-            addLogPFC(1, MSG_PFC_ERROR_WRITE_VEL);
+            addLogPFC(PIPE_CHANNEL, MSG_PFC_ERROR_WRITE_VEL);
           }
           strcpy(uuid_old, uuid_new);
           strcpy(gpgll_A, gpgll_B);
@@ -192,15 +198,16 @@ void pfc01(void)
  */
 void pfc02(void)
 {
-  char uuid_old[UUID_LEN] = "";
-  char uuid_new[UUID_LEN] = "";
+  char uuid_old[UUID_LEN + 1] = "";
+  char uuid_new[UUID_LEN + 1] = "";
   char gpgll_A[GPGLL_LEN] = "";
   char gpgll_B[GPGLL_LEN] = "";
-  char coord[MAX_ROW_LEN] = "";
+  char coord[MAX_ROW_LEN_G18] = "";
   char logMsg[MAX_ROW_LEN_LOG] = "";
   double dDist = 0;
   double dVel = 0;
   int iServerFp, iClientFp, iServerLen;
+  int test;
   unsigned int iClientLen;
 
   struct sockaddr_un serverUNIXAddress;              /* Server address        */
@@ -226,13 +233,13 @@ void pfc02(void)
   while (1) {
     iClientFp = accept(iServerFp, clientSockAddrPtr, &iClientLen);
     if (readCoord(coord) == NULL) {
-      addLogPFC(2, MSG_PFC_ERROR_READ_COORD);
+      addLogPFC(SOCKET_CHANNEL, MSG_PFC_ERROR_READ_COORD);
       close(iClientFp);
     } else {
       getUUID(uuid_new, coord);                      /* Get UUID              */
       getGPGLL(gpgll_B, coord);                      /* Get GPGLL             */
       if (strcmp("END", gpgll_B) == 0) {
-        addLogPFC(2, "END");
+        addLogPFC(SOCKET_CHANNEL, "END");
         writeEndSocketChnnl(iClientFp);
         closeClientSocket(iClientFp);                /* Close client socket   */
         break;
@@ -240,9 +247,9 @@ void pfc02(void)
       if (strcmp(uuid_old, uuid_new) != 0) {
 
         /* ACTION */
-        if (strcmp("START",gpgll_B) != 0) {
-          addLogPFC(2, gpgll_A);
-          addLogPFC(2, gpgll_B);
+        if (strcmp("START", gpgll_B) != 0) {
+          addLogPFC(SOCKET_CHANNEL, gpgll_A);
+          addLogPFC(SOCKET_CHANNEL, gpgll_B);
           if (strlen(gpgll_A) == 44) {
             dDist = distanceBetweenEarthCoordinates(getLat(gpgll_A),
                                                     getLon(gpgll_A),
@@ -253,10 +260,14 @@ void pfc02(void)
             dDist = 0;
             dVel = 0;
           }
+          if (iPFC02Shifter) {
+            dVel = shifterSpeed(dVel);
+            iPFC02Shifter = 0;
+          }
           sprintf(logMsg, "Dist: %f m - Vel: %f km/h\n", dDist, dVel);
-          addLogPFC(2, logMsg);
+          addLogPFC(SOCKET_CHANNEL, logMsg);
           if (writeSocketChnnl(iClientFp, dVel) > 0) {
-            addLogPFC(2, MSG_PFC_ERROR_WRITE_VEL);
+            addLogPFC(SOCKET_CHANNEL, MSG_PFC_ERROR_WRITE_VEL);
           }
           closeClientSocket(iClientFp);                /* Close client socket */
           strcpy(uuid_old, uuid_new);
@@ -278,23 +289,23 @@ void pfc02(void)
  */
 void pfc03(void)
 {
-  char uuid_old[UUID_LEN] = "";
-  char uuid_new[UUID_LEN] = "";
+  char uuid_old[UUID_LEN + 1] = "";
+  char uuid_new[UUID_LEN + 1] = "";
   char gpgll_A[GPGLL_LEN] = "";
   char gpgll_B[GPGLL_LEN] = "";
-  char coord[MAX_ROW_LEN] = "";
+  char coord[MAX_ROW_LEN_G18] = "";
   char logMsg[MAX_ROW_LEN_LOG] = "";
   double dDist = 0;
   double dVel = 0;
 
   while (1) {
     if (readCoord(coord) == NULL) {
-      addLogPFC(3, MSG_PFC_ERROR_READ_COORD);
+      addLogPFC(FILE_CHANNEL, MSG_PFC_ERROR_READ_COORD);
     } else {
-      getUUID(uuid_new, coord);   /* Get UUID */
-      getGPGLL(gpgll_B, coord);   /* Get GPGLL */
+      getUUID(uuid_new, coord);                                  /* Get UUID  */
+      getGPGLL(gpgll_B, coord);                                  /* Get GPGLL */
       if (strcmp("END", gpgll_B) == 0) {
-        addLogPFC(3, "END");
+        addLogPFC(FILE_CHANNEL, "END");
         closeFileChnnl();
         break;
       }
@@ -302,8 +313,8 @@ void pfc03(void)
 
         /* ACTION */
         if (strcmp("START",gpgll_B) != 0) {
-          addLogPFC(3, gpgll_A);
-          addLogPFC(3, gpgll_B);
+          addLogPFC(FILE_CHANNEL, gpgll_A);
+          addLogPFC(FILE_CHANNEL, gpgll_B);
           if (strlen(gpgll_A) == 44) {
             dDist = distanceBetweenEarthCoordinates(getLat(gpgll_A),
                                                     getLon(gpgll_A),
@@ -314,10 +325,14 @@ void pfc03(void)
             dDist = 0;
             dVel = 0;
           }
+          if (iPFC03Shifter) {
+            dVel = shifterSpeed(dVel);
+            iPFC03Shifter = 0;
+          }
           sprintf(logMsg, "Dist: %f m - Vel: %f km/h\n", dDist, dVel);
-          addLogPFC(3, logMsg);
+          addLogPFC(FILE_CHANNEL, logMsg);
           if (writeFileChnnl(dVel) > 0) {
-            addLogPFC(3, MSG_PFC_ERROR_WRITE_VEL);
+            addLogPFC(FILE_CHANNEL, MSG_PFC_ERROR_WRITE_VEL);
           }
           strcpy(uuid_old, uuid_new);
           strcpy(gpgll_A, gpgll_B);
@@ -337,7 +352,7 @@ void pfc03(void)
  */
 void reader(char *path)
 {
-  char coordinate[MAX_ROW_LEN];
+  char coordinate[MAX_ROW_LEN_G18];
   char tmpRdr[READING_ROW_LEN];
 
   if (GPGLLInit(path) == 0) {
@@ -381,4 +396,34 @@ int addLogPFC(int pfcNum, char *msg)
     res = addLog(LOG_PFC_03, msg);
   }
   return res;
+}
+
+void shifter(int sig)
+{
+  char sPidPFC[PID_LEN] = "";
+  int pid, status;
+  char sLogMsg[MAX_ROW_LEN_LOG];
+  extern int iPFC01Shifter;
+  extern int iPFC02Shifter;
+  extern int iPFC03Shifter;
+
+  pid = getpid();
+  sprintf(sLogMsg, "TEST: pid: %d - sig: %d", pid, sig);
+  getPFC01Pid(sPidPFC);
+  if (pid == atoi(sPidPFC)) {
+    iPFC01Shifter = 1;
+    return;
+  }
+  strcpy(sPidPFC, "");
+  getPFC02Pid(sPidPFC);
+  if (pid == atoi(sPidPFC)) {
+    iPFC02Shifter = 1;
+    return;
+  }
+  strcpy(sPidPFC, "");
+  getPFC03Pid(sPidPFC);
+  if (pid == atoi(sPidPFC)) {
+    iPFC03Shifter = 1;
+    return;
+  }
 }

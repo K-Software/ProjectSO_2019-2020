@@ -11,16 +11,30 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include "common.h"
+#include "failure_generator.h"
 #include "log.h"
 #include "pfcs.h"
+#include "pfcs_util.h"
 #include "project.h"
 #include "time_util.h"
 #include "transducers.h"
+#include "wes.h"
 
 /* -------------------------------------------------------------------------- */
 /* Macro                                                                      */
 /* -------------------------------------------------------------------------- */
 #define LOG_PROJECT "PROJECT_SO"
+#define MSG_PROJECT_START "project - start"
+#define MSG_PROJECT_START_WES "project - WES start"
+#define MSG_PROJECT_END_WES "project - WES end"
+#define MSG_PROJECT_START_TRANS "project - Transducers start"
+#define MSG_PROJECT_END_TRANS "project - Transducers end"
+#define MSG_PROJECT_START_PFCS "project - PFCS start"
+#define MSG_PROJECT_END_PFCS "project - PFCS end"
+#define MSG_PROJECT_START_FAILGEN "project - Failure Generator start"
+#define MSG_PROJECT_END_FAILGEN "project - Failure Generator end"
+#define MSG_PROJECT_END "project - end"
+
 
 /* -------------------------------------------------------------------------- */
 /* Functions                                                                  */
@@ -28,32 +42,48 @@
 
 int main(int argc, char *argv[])
 {
-  int pidTran;
-  int pidPFCS;
+  int pidWES, pidTran, pidPFCS, pidFailGen;
 
   if (argc == 2) {
 
     projectInit();
 
-    addLog(LOG_PROJECT, "Start - Project");
-    pidTran = fork();
-    if (pidTran == 0) {
+    addLog(LOG_PROJECT, MSG_PROJECT_START);
+    pidWES = fork();
+    if (pidWES == 0) {
 
-      // Transducers
-      createTranducers();
+      addLog(LOG_PROJECT, MSG_PROJECT_START_WES);
+      createWES();                                             /* WES         */
+      addLog(LOG_PROJECT, MSG_PROJECT_END_WES);
     } else {
+      pidTran = fork();
+      if (pidTran == 0) {
+
+        addLog(LOG_PROJECT, MSG_PROJECT_START_TRANS);
+        createTranducers();                                    /* Transducers */
+        addLog(LOG_PROJECT, MSG_PROJECT_END_TRANS);
+      } else {
         pidPFCS = fork();
         if (pidPFCS == 0) {
 
-        // PFCS
-        createPFCS(argv[1]);
-      } else {
+          addLog(LOG_PROJECT, MSG_PROJECT_START_PFCS);
+          createPFCS(argv[1]);                                 /* PFCS        */
+          addLog(LOG_PROJECT, MSG_PROJECT_END_PFCS);
+        } else {
+          pidFailGen = fork();
+          if (pidFailGen == 0) {
 
-        // Project
-        for (int i=0; i< 2; i++) {
-          wait(NULL);
+            addLog(LOG_PROJECT, MSG_PROJECT_START_FAILGEN);
+            createFailureGenerator();                         /* Failure Gen  */
+            addLog(LOG_PROJECT, MSG_PROJECT_END_FAILGEN);
+          } else {
+            // Project
+            for (int i=0; i< 4; i++) {
+              wait(NULL);
+            }
+            addLog(LOG_PROJECT, MSG_PROJECT_END);
+          }
         }
-        addLog(LOG_PROJECT, "Finish - Project");
       }
     }
   } else {
@@ -89,7 +119,7 @@ void projectInit(void)
                                                      /* temporary pipe        */
   }
 
-  if (mkfifo(PATH_PIPE_CHANNEL, 0600) == 0) {        /* Create temporary pipe */
+  if (mkfifo(PATH_PIPE_CHANNEL, 0666) == 0) {        /* Create temporary pipe */
     addLog(LOG_PROJECT, "Create pipe: OK");
   } else {
     strcpy(msgLog, "");
@@ -99,11 +129,17 @@ void projectInit(void)
                                                      /* pipe */
   }
 
-  /*
-   * Remove all files with velocities created from the previous execution
-   * of project.
-   */
+  /* Remove all files with velocities created from the previous execution     */
+  /* of project.                                                              */
   removeLog(SPEED_PFC_01);
   removeLog(SPEED_PFC_02);
   removeLog(SPEED_PFC_03);
+
+  removeLog(STATUS);                       /* Remove previous STATUS log file */
+
+  removeCoord();
+
+  unlink(PATH_PFC01_STATUS);
+  unlink(PATH_PFC02_STATUS);
+  unlink(PATH_PFC03_STATUS);
 }

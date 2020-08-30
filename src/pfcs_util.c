@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "common.h"
 #include "log.h"
 #include "gpgll.h"
@@ -15,8 +16,7 @@
 /* -------------------------------------------------------------------------- */
 #define PATH_PID_PFCS "./pid_pfcs.tmp"
 #define PATH_LAST_READING "./tmp/reading.tmp"
-#define MAX_ROW_LEN 100 /* Max length of row of file G18.txt */
-#define READING_ROW_LEN UUID_LEN + MAX_ROW_LEN + 2
+#define READING_ROW_LEN UUID_LEN + MAX_ROW_LEN_G18 + 2
 #define LOG_READER "PFC_READER"
 #define MSG_CREATEPFCS_START_PROC "createPFCS - Start  proc: "
 #define MSG_CREATEPFCS_FINISH_PROC "createPFCS - Finish proc: "
@@ -127,6 +127,23 @@ char* readCoord(char *coord)
 
 /*
  * DESCRIPTION
+ * This function remove the file reading.tmp
+ *
+ * RETURN VALUES
+ * Upon successful completion, removeLog returns 0. Otherwise, return a value
+ * different than 0.
+ * If return 1 there was an error during the removing of temporary file.
+ */
+int removeCoord(void)
+{
+  if (unlink(PATH_LAST_READING) == -1) {             /* Remove temporary file */
+    return 1;                  /* Occur an error during  the removing of file */
+  };
+  return 0;
+}
+
+/*
+ * DESCRIPTION
  * This function reads GPGLL string from Coordinate string.
  *
  * PARAMETERS:
@@ -142,7 +159,7 @@ char* getGPGLL(char *gpgll, char *coord)
   if (getSubStr(coord, gpgll, 39, 82) == 0) {
     return gpgll;               /* GPGLL */
   } else if (getSubStr(coord, gpgll, 38, 42) == 0) {
-    return gpgll;               /* STRAT */
+    return gpgll;               /* START */
   } else if (getSubStr(coord, gpgll, 38, 40) == 0) {
     return gpgll;               /* END */
   } else {

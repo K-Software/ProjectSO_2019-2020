@@ -15,7 +15,6 @@
 /* -------------------------------------------------------------------------- */
 #define PATH_LOG "./log/"
 #define EXT_LOG ".log"
-#define PREFIX_LEN 25
 
 /* -------------------------------------------------------------------------- */
 /* Functions                                                                  */
@@ -148,11 +147,11 @@ char* enrichMsg(char *msg)
   struct timeval tp;
   gettimeofday(&tp, 0);
   time_t now = tp.tv_sec;
-  char *tmpMsg = malloc(PREFIX_LEN + strlen(msg) + 2);
+  char *tmpMsg = malloc(PREFIX_LEN_LOG + strlen(msg) + 2);
   struct tm *t = localtime(&now);
   char tt[7];
   sprintf(tt, ":%03d]:", tp.tv_usec/1000);
-  char prefix[PREFIX_LEN];
+  char prefix[PREFIX_LEN_LOG];
   strftime(prefix, sizeof(prefix), "[%Y%m%d-%X", localtime(&now));
   strcat(prefix, tt);
   strcpy(tmpMsg, prefix);
