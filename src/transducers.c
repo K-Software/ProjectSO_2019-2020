@@ -16,7 +16,6 @@
 #include "string_util.h"
 #include "time_util.h"
 #include "transducers.h"
-#include "velocity_util.h"
 
 /* -------------------------------------------------------------------------- */
 /* Macro                                                                      */

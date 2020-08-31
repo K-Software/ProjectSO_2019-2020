@@ -9,7 +9,6 @@
 #include "gpgll.h"
 #include "pfcs_util.h"
 #include "string_util.h"
-#include "velocity_util.h"
 
 /* -------------------------------------------------------------------------- */
 /* Macro                                                                      */
