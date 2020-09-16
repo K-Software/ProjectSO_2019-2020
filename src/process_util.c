@@ -19,13 +19,11 @@
 
 /*
  * DESCRIPTION
- * ...
+ * This function writes in a specific temporary file the pid of the 
+ * PFC 01 process.
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - pid = pid of the process
  */
 void setPFC01Pid(int pid)
 {
@@ -40,13 +38,11 @@ void setPFC01Pid(int pid)
 
 /*
  * DESCRIPTION
- * ...
+ * This function writes in a specific temporary file the pid of the 
+ * PFC 02 process.
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - pid = pid of the process
  */
 void setPFC02Pid(int pid)
 {
@@ -61,13 +57,11 @@ void setPFC02Pid(int pid)
 
 /*
  * DESCRIPTION
- * ...
+ * This function writes in a specific temporary file the pid of the 
+ * PFC 03 process.
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - pid = pid of the process
  */
 void setPFC03Pid(int pid)
 {
@@ -82,13 +76,68 @@ void setPFC03Pid(int pid)
 
 /*
  * DESCRIPTION
- * ...
+ * This function writes in a specific temporary file the pid of the 
+ * Reader process.
  *
  * PARAMETERS
- * ...
+ * - pid = pid of the process
+ */
+void setReaderPid(int pid)
+{
+  FILE *fp;
+  char sPid[PID_LEN];
+
+  fp = fopen(PATH_READER_PID, "w");
+  sprintf(sPid,"%d",pid);
+  fputs(sPid, fp);
+  fclose(fp);
+}
+
+/*
+ * DESCRIPTION
+ * This function writes in a specific temporary file the pid of the 
+ * Transducers process.
  *
- * RETURN VALUES
- * ...
+ * PARAMETERS
+ * - pid = pid of the process
+ */
+void setTransPid(int pid)
+{
+  FILE *fp;
+  char sPid[PID_LEN];
+
+  fp = fopen(PATH_TRANS_PID, "w");
+  sprintf(sPid,"%d",pid);
+  fputs(sPid, fp);
+  fclose(fp);
+}
+
+/*
+ * DESCRIPTION
+ * This function writes in a specific temporary file the pid of the 
+ * Failure generator process.
+ *
+ * PARAMETERS
+ * - pid = pid of the process
+ */
+void setFailGenPid(int pid)
+{
+  FILE *fp;
+  char sPid[PID_LEN];
+
+  fp = fopen(PATH_FAILG_PID, "w");
+  sprintf(sPid,"%d",pid);
+  fputs(sPid, fp);
+  fclose(fp);
+}
+
+/*
+ * DESCRIPTION
+ * This function reads from a specific temporary file the pid of the 
+ * PFC 01 process.
+ *
+ * PARAMETERS
+ * - pid = pid of the process
  */
 void getPFC01Pid(char *sPid)
 {
@@ -101,13 +150,11 @@ void getPFC01Pid(char *sPid)
 
 /*
  * DESCRIPTION
- * ...
+ * This function reads from a specific temporary file the pid of the 
+ * PFC 02 process.
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - pid = pid of the process
  */
 void getPFC02Pid(char *sPid)
 {
@@ -120,13 +167,11 @@ void getPFC02Pid(char *sPid)
 
 /*
  * DESCRIPTION
- * ...
+ * This function reads from a specific temporary file the pid of the 
+ * PFC 03 process.
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - pid = pid of the process
  */
 void getPFC03Pid(char *sPid)
 {
@@ -139,126 +184,51 @@ void getPFC03Pid(char *sPid)
 
 /*
  * DESCRIPTION
- * ...
+ * This function reads from a specific temporary file the pid of the 
+ * Reader process.
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - pid = pid of the process
  */
-void setPFC01Status(char *status)
+void getReaderPid(char *sPid)
 {
   FILE *fp;
 
-  fp = fopen(PATH_PFC01_STATUS, "w");
-  fputs(status, fp);
+  fp = fopen(PATH_READER_PID, "r");
+  fgets(sPid, PID_LEN, fp);
   fclose(fp);
 }
 
 /*
  * DESCRIPTION
- * ...
+ * This function reads from a specific temporary file the pid of the 
+ * Transducers process.
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - pid = pid of the process
  */
-void setPFC02Status(char *status)
+void getTransPid(char *sPid)
 {
   FILE *fp;
 
-  fp = fopen(PATH_PFC02_STATUS, "w");
-  fputs(status, fp);
+  fp = fopen(PATH_TRANS_PID, "r");
+  fgets(sPid, PID_LEN, fp);
   fclose(fp);
 }
 
 /*
  * DESCRIPTION
- * ...
+ * This function reads from a specific temporary file the pid of the 
+ * Failure Generator process.
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - pid = pid of the process
  */
-void setPFC03Status(char *status)
+void getFailGenPid(char *sPid)
 {
   FILE *fp;
 
-  fp = fopen(PATH_PFC03_STATUS, "w");
-  fputs(status, fp);
-  fclose(fp);
-}
-
-/*
- * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
- */
-void getPFC01Status(char *status)
-{
-  FILE *fp;
-
-  fp = fopen(PATH_PFC01_STATUS, "r");
-  if (fp != NULL) {
-    fgets(status, PFC_STATUS_LEN, fp);
-  } else {
-    strcpy(status, PFC_STATUS_RUN);
-  }
-  fclose(fp);
-}
-
-/*
- * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
- */
-void getPFC02Status(char *status)
-{
-  FILE *fp;
-
-  fp = fopen(PATH_PFC02_STATUS, "r");
-  if (fp != NULL) {
-    fgets(status, PFC_STATUS_LEN, fp);
-  } else {
-    strcpy(status, PFC_STATUS_RUN);
-  }
-  fclose(fp);
-}
-
-/*
- * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
- */
-void getPFC03Status(char *status)
-{
-  FILE *fp;
-
-  fp = fopen(PATH_PFC03_STATUS, "r");
-  if (fp != NULL) {
-    fgets(status, PFC_STATUS_LEN, fp);
-  } else {
-    strcpy(status, PFC_STATUS_RUN);
-  }
+  fp = fopen(PATH_FAILG_PID, "r");
+  fgets(sPid, PID_LEN, fp);
   fclose(fp);
 }

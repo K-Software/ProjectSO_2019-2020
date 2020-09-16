@@ -16,15 +16,17 @@
 #define SOCKET_CHANNEL 2                             /* SOCKET                */
 #define FILE_CHANNEL 3                               /* FILE                  */
 #define VELOCITY_VALUE_LEN 15
+#define ERROR_VALUE_LEN 9
 #define PATH_FILE_CHANNEL "./tmp/file_vel.tmp"
 #define PATH_PIPE_CHANNEL "./tmp/pipe_vel.tmp"
 #define PATH_SOCKET_CHANNEL "./tmp/socket_vel.tmp"
+#define PATH_ERROR_CHANNEL "./tmp/pipe_err.tmp"
 #define PATH_PFC01_PID "./tmp/pfc01_pid.tmp"
 #define PATH_PFC02_PID "./tmp/pfc02_pid.tmp"
 #define PATH_PFC03_PID "./tmp/pfc03_pid.tmp"
-#define PATH_PFC01_STATUS "./tmp/pfc01_status.tmp"
-#define PATH_PFC02_STATUS "./tmp/pfc02_status.tmp"
-#define PATH_PFC03_STATUS "./tmp/pfc03_status.tmp"
+#define PATH_READER_PID "./tmp/reader_pid.tmp"
+#define PATH_TRANS_PID "./tmp/trans_pid.tmp"
+#define PATH_FAILG_PID "./tmp/failg_pid.tmp"
 #define PATH_LAST_UUID_INS_PFC03 "./tmp/pfc03_last_uuid.tmp"
 #define SPEED_PFC_01 "SPEED_PFC_01"
 #define SPEED_PFC_02 "SPEED_PFC_02"
@@ -34,8 +36,8 @@
 #define FAILURE_SIGSTOP 100                 /* Probability of SIGSTOP failure */
 #define FAILURE_SIGCONT 10                  /* Probability of SIGCONT         */
 #define FAILURE_SIGUSR1 10                  /* Probability of SIGUSR1 failure */
-#define PFC_STATUS_LEN 10
-#define PFC_STATUS_INT "INTERRUPT"                   /* Interrupt process     */
-#define PFC_STATUS_STOP "STOP"                       /* Stop process          */
-#define PFC_STATUS_RUN "RUN"                         /* Run process           */
 #define END_SPEED_STREAM "END_STREAM"
+#define WES_STATUS_ALLOK "ALLOK:--"
+#define WES_STATUS_ERROR "ERROR:"
+#define WES_STATUS_EMERGENCY "EMERG:--"
+#define SWITCH "SWITCH"

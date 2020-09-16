@@ -5,7 +5,7 @@ project.out: src/project.c mathgps.o log.o pfcs_util.o gpgll.o string_util.o\
 time_util.o process_util.o shifter_util.o pipe_channel.o socket_channel.o\
 file_channel.o error_channel.o pfcs.o transducers.o wes.o failure_generator.o\
 disconnect_switch.o
-	cc $^ -o $@
+	cc $^ -o $@ -lm -luuid -lbsd
 
 # ---------------------------------------------------------------------------- #
 # disconnect_switch.o
@@ -107,7 +107,7 @@ time_util.o: src/time_util.c
 # mathgps.o
 # ---------------------------------------------------------------------------- #
 mathgps.o: src/mathgps.c
-	cc -c $^ -o $@
+	cc -c $^ -o $@ -lm
 
 clean:
 	rm project.out disconnect_switch.o failure_generator.o wes.o transducers.o\

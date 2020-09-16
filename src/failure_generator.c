@@ -1,6 +1,7 @@
 /* -------------------------------------------------------------------------- */
 /* failure_generator.c                                                        */
 /* -------------------------------------------------------------------------- */
+#include <bsd/stdlib.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,9 +22,9 @@
 #define PFC_01_NAME "PFC 01"
 #define PFC_02_NAME "PFC 02"
 #define PFC_03_NAME "PFC 03"
-#define MSG_LOG_FAILURE_SIGINT "FAILURE - Type: SIGINT - Process: %s - PID: %s "
-#define MSG_LOG_FAILURE_SIGSTOP "FAILURE - Type: SIGSTOP - Process: %s - PID: %s - Status: %d"
-#define MSG_LOG_FAILURE_SIGCONT "FAILURE - Type: SIGCONT - Process: %s - PID: %s - Status: %d"
+#define MSG_LOG_FAILURE_SIGINT "FAILURE - Type: SIGINT - Process: %s - PID: %s"
+#define MSG_LOG_FAILURE_SIGSTOP "FAILURE - Type: SIGSTOP - Process: %s - PID: %s"
+#define MSG_LOG_FAILURE_SIGCONT "FAILURE - Type: SIGCONT - Process: %s - PID: %s"
 #define MSG_LOG_FAILURE_SIGUSR1 "FAILURE - Type: SIGUSR1 - Process: %s - PID: %s"
 #define MSG_LOG_FAILURE_PROB "FAILURE - SIGINT: %d - SIGSTOP : %d - SIGCONT: %d - SIGUSR1: %d"
 
@@ -33,8 +34,7 @@
 
 /*
  * DESCRIPTION
- * ...
- *
+ * This function creates the Failure Generator procress.
  */
 void createFailureGenerator(void)
 {
@@ -44,6 +44,7 @@ void createFailureGenerator(void)
   char gpgll[GPGLL_LEN] = "";
   char coord[MAX_ROW_LEN_G18] = "";
 
+  setFailGenPid(getpid());
   sprintf(sLogMsg,  MSG_LOG_FAILURE_PROB, FAILURE_SIGINT,
           FAILURE_SIGSTOP, FAILURE_SIGCONT, FAILURE_SIGUSR1);
   addLog(LOG_FAILURE, sLogMsg);
@@ -84,10 +85,7 @@ void createFailureGenerator(void)
 
 /*
  * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
+ * This function select a random number between 1 to 3 for select one of PFC.
  *
  * RETURN VALUES
  * Return an integer number between 1 to 3.
@@ -103,13 +101,10 @@ int selectPFC(void)
 
 /*
  * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
+ * This function determines if it occurred a SIGINT signal.
  *
  * RETURN PARAMETERS
- * ...
+ * Return 1 if it occurred the SIGINT signal, Otherwise, return 0.
  */
 int failureSIGINT(void)
 {
@@ -121,13 +116,10 @@ int failureSIGINT(void)
 
 /*
  * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
+ * This function determines if it occurred a SIGSTOP signal.
  *
  * RETURN VALUES
- * ...
+ * Return 1 if it occurred the SIGSTOP signal, Otherwise, return 0.
  */
 int failureSIGSTOP(void)
 {
@@ -139,13 +131,10 @@ int failureSIGSTOP(void)
 
 /*
  * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
+ * This function determines if it occurred a SIGCONT signal.
  *
  * RETURN PARAMETERS
- * ...
+ * Return 1 if it occurred the SIGCONT signal, Otherwise, return 0.
  */
 int failureSIGCONT(void)
 {
@@ -157,13 +146,10 @@ int failureSIGCONT(void)
 
 /*
  * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
+ * This function determines if it occurred a SIGUSR1 signal.
  *
  * RETURN PARAMETERS
- * ...
+ * Return 1 if it occurred the SIGUSR1 signal, Otherwise, return 0.
  */
 int failureSIGUSR1(void)
 {
@@ -175,10 +161,12 @@ int failureSIGUSR1(void)
 
 /*
  * DESCRIPTION
- * ...
+ * This function tries to send the signals SIGINT, SIGSTOP, SIGCONT, and 
+ * SIGURS1 to process identified by the parameter pid.
  *
  * PARAMETERS
- * ...
+ * - namePfc = name of PFC(PFC 01, PFC 02, PFC03)
+ * - pid = pid of PFC process
  *
  */
 void failurePFC(char *namePfc, char *pid)
@@ -197,19 +185,15 @@ void failurePFC(char *namePfc, char *pid)
 
   if (failureSIGSTOP()) {
     kill(iPid, SIGSTOP);
-    iStatus = kill(iPid, 0);
-    statusPFC(namePfc, PFC_STATUS_STOP);
     strcpy(sFailureMsg, "");
-    sprintf(sFailureMsg, MSG_LOG_FAILURE_SIGSTOP, namePfc, pid, iStatus);
+    sprintf(sFailureMsg, MSG_LOG_FAILURE_SIGSTOP, namePfc, pid);
     addLog(LOG_FAILURE, sFailureMsg);
   }
 
   if (failureSIGCONT()) {
     kill(iPid, SIGCONT);
-    iStatus = kill(iPid, 0);
-    statusPFC(namePfc, PFC_STATUS_RUN);
     strcpy(sFailureMsg, "");
-    sprintf(sFailureMsg, MSG_LOG_FAILURE_SIGCONT, namePfc, pid, iStatus);
+    sprintf(sFailureMsg, MSG_LOG_FAILURE_SIGCONT, namePfc, pid);
     addLog(LOG_FAILURE, sFailureMsg);
   }
 
@@ -218,28 +202,5 @@ void failurePFC(char *namePfc, char *pid)
     strcpy(sFailureMsg, "");
     sprintf(sFailureMsg, MSG_LOG_FAILURE_SIGUSR1, namePfc, pid);
     addLog(LOG_FAILURE, sFailureMsg);
-  }
-}
-
-/*
- * DESCRIPTION
- * ...
- *
- * PARAMETERS
- * ...
- *
- */
-void statusPFC(char *namePfc, char *status)
-{
-  if (strcmp(PFC_01_NAME, namePfc) == 0) {
-    setPFC01Status(status);
-    return;
-  }
-  if (strcmp(PFC_02_NAME, namePfc) == 0) {
-    setPFC02Status(status);
-    return;
-  }
-  if (strcmp(PFC_03_NAME, namePfc) == 0) {
-    setPFC03Status(status);
   }
 }

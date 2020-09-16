@@ -19,22 +19,23 @@
 
 /*
  * DESCRIPTION
- * ...
+ * This function converts the speed contains inside dSpeed param from double 
+ * to int and then shift left of 2 bit this value.
  *
  * PARAMETERS
- * ...
+ * - dSpeed = Speed
  *
  * RETURN VALUES
- * ...
+ * Return the new value of the speed.
  */
 double shifterSpeed(double dSpeed)
 {
   int iRes = 0;
 
-  iRes = (int) dSpeed;
+  iRes = (int) dSpeed;                      /* Cast speed from double to int  */
   #ifdef DEBUG
   iRes = 42;                          /* the hitchhiker's guide to the galaxy */
   #endif
-  iRes = iRes << 2;
+  iRes = iRes << 2;                         /* Shift the speed value of 2 bit */
   return iRes;
 }

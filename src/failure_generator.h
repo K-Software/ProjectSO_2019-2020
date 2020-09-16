@@ -8,4 +8,4 @@ int failureSIGSTOP(void);
 int failureSIGCONT(void);
 int failureSIGUSR1(void);
 void failurePFC(char *namePFC, char *pid);
-void statusPFC(char *namePfc, char *status);
+void signalPFC(char *namePfc, char *signal);

@@ -32,32 +32,25 @@
 
 /*
  * DESCRIPTION
- * This function create the transducers.
- *
+ * This function creates the Transducers process.
  */
 void createTranducers(void)
 {
   char lastUuidFile[UUID_LEN] = "START";
   char uuid[UUID_LEN] = "";
-  char sPFC01Status[PFC_STATUS_LEN] = "";
-  char sPFC02Status[PFC_STATUS_LEN] = "";
-  char sPFC03Status[PFC_STATUS_LEN] = "";
   int iResStream1 = 0;
   int iResStream2 = 0;
   int iResStream3 = 0;
   int pp;                                                     /* Pipe pointer */
-  int iClientFp;
   int iStatusIns = 0;
   int iStatusEnd = 0;
   int iPFCActive = 0;
   char testLog[MAX_ROW_LEN_LOG];
 
   /* START */
+  setTransPid(getpid());
   addLog(LOG_TRANSDUCERS, "START");
   openPipeChnnlRead(&pp);                  /* Open pipe channel in read mode  */
-
-  /* TODO: function to create socket */
-  iClientFp = socket(AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
 
   mssleep(200);
   while (1) {
@@ -69,7 +62,7 @@ void createTranducers(void)
       iStatusEnd++;
     }
 
-    iResStream2 = readFromSocket(iClientFp, uuid);           /* PFC 02        */
+    iResStream2 = readFromSocket(uuid);                      /* PFC 02        */
     if (iResStream2 == 1) {
       iStatusEnd++;
     }
@@ -88,7 +81,6 @@ void createTranducers(void)
     }
   }
 
-  close(iClientFp);
   closePipeChnnlRead(pp);                  /* Close pipe channel in read mode */
   addLog(LOG_TRANSDUCERS, "END");
 }
@@ -151,13 +143,14 @@ int readFromPipe(int pipePointer, char *uuid)
  * If return 1 the stream is ended.
  * If return 2 generic error.
  */
-int readFromSocket(int iClientFp, char *uuid)
+int readFromSocket(char *uuid)
 {
   char sVel[VELOCITY_VALUE_LEN] = "";
   char sLogMsg[5 + VELOCITY_VALUE_LEN] = "";
   char sLogVel[MAX_ROW_LEN_LOG] = "";
   char sLastUuidIns[UUID_LEN] = "";
-  int iServerLen, iResult;
+  char sErrMsg[MAX_ROW_LEN_LOG] = "";
+  int iServerLen, iResult, iClientFp;
   int n = 0;
   int iRes = 0;
   struct sockaddr_un serverUNIXAddress;              /* Server address        */
@@ -169,11 +162,13 @@ int readFromSocket(int iClientFp, char *uuid)
   serverUNIXAddress.sun_family = AF_UNIX;                    /* Server domain */
   strcpy (serverUNIXAddress.sun_path, PATH_SOCKET_CHANNEL);  /* Server name   */
 
+  iClientFp = socket(AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
   do { /* Loop until a connection is made with the server */
     iResult = connect (iClientFp, serverSockAddrPtr, iServerLen);
-    if (iResult == -1){
-      addLog(LOG_TRANSDUCERS,
-             "SOCKET - connection problem;re-try in 20 msec\n");
+    if (iResult == -1) {
+      sprintf(sErrMsg, "SOCKET - connection problem(%s);re-try in 20 msec\n", 
+              strerror(errno));
+      addLog(LOG_TRANSDUCERS, sErrMsg);
       mssleep (20); /* Wait and then try again */
     }
     n++;
@@ -195,6 +190,7 @@ int readFromSocket(int iClientFp, char *uuid)
   } else {
     iRes = 2;
   }
+  close(iClientFp);
   return iRes;
 }
 

@@ -44,7 +44,7 @@
  * - pipePointer = file pointer of pipe.
  *
  * RETURN VALUES
- * Upon successful completion, openPipeChnl returns 0. Otherwise, return a
+ * Upon successful completion, openPipeChnnlRead returns 0. Otherwise, return a
  * value different than 0.
  * If return 1 there was an error during opening the pipe.
  */
@@ -71,8 +71,9 @@ int openPipeChnnlRead(int *pipePointer)
  * - pipePointer = File pointer of pipe
  * - sVel = Velocity
  *
- * RETURN VALUES:
- * ...
+ * RETURN VALUES
+ * Upon successful completion, writePipeChannl returns 1. Otherwise, return a
+ * value different than 1.
  */
 int readPipeChnnl(int pipePointer, char *sVel)
 {

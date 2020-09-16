@@ -15,13 +15,10 @@
 
 /*
  * DESCRIPTION
- * ...
+ * This function generates a 36-digit UUID
  *
  * PARAMETERS
- * ...
- *
- * RETURN VALUES
- * ...
+ * - uuid = uuid
  */
 void generateUuid(char *uuid)
 {
@@ -32,13 +29,17 @@ void generateUuid(char *uuid)
 
 /*
  * DESCRIPTION
- * ...
+ * This function builds the message with the prefix followed by the content of
+ * the body parameter.
  *
  * PARAMETERS
- * ...
+ * - msg = message
+ * - sPrefix = prefix put on the head of the message
+ * - sBody = body of the message
  *
  * RETURN VALUES
- * ...
+ * Upon successful completion, buildLogMsg returns a pointer to the
+ * string that contains the message.
  */
 char* buildLogMsg(char *msg, char *sPrefix, char *sBody)
 {
@@ -50,8 +51,8 @@ char* buildLogMsg(char *msg, char *sPrefix, char *sBody)
 
 /*
  * DESCRIPTION
- * This function builds the message with UUID follow by the content of the text
- * parameter
+ * This function builds the message with UUID followed by the content of the 
+ * text parameter.
  *
  * PARAMETERS:
  * - msg = Message
@@ -141,5 +142,31 @@ char* getUUID(char *uuid, char *string)
     return uuid;
   } else {
     return NULL;
+  }
+}
+
+/*
+ * DESCRIPTION
+ * This function checks if the source starts with the prefix.
+ *
+ * PARAMETERS
+ * - source = String
+ * - prefix = Prefix to check
+ *
+ * RETURN VALUES
+ * If source strat with prefix, startWith returns 1. Otherwise return 0.
+ */
+int startWith(char *source, char *prefix)
+{
+  char sTmp[strlen(prefix)];
+
+  if (getSubStr(source, sTmp, 0, strlen(prefix) -1) == 0) {
+    if (strcmp(prefix, sTmp) == 0) {
+      return 1;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
   }
 }

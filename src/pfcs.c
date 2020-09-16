@@ -1,12 +1,14 @@
 /* -------------------------------------------------------------------------- */
 /* pfcs.c                                                                     */
 /* -------------------------------------------------------------------------- */
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 #include <uuid/uuid.h>
@@ -52,13 +54,7 @@ int iPFC03Shifter = 0;
 
 /*
  * DESCRIPTION
- * ...
- *
- * PARAMETERS:
- * ...
- *
- * RETURN VALUES:
- * ...
+ * This function creates the PFC processes
  */
 void createPFCS(char *path)
 {
@@ -102,8 +98,8 @@ void createPFCS(char *path)
         if (pid_reader == 0) {
 
           /* READER */
-          mssleep(200);
           addLog(LOG_CREATOR, buildCreatePFCSStartMsg(tmpMsg, "READER"));
+          setReaderPid(getpid());
           reader(path);
           addLog(LOG_CREATOR, buildCreatePFCSFinishMsg(tmpMsg, "READER"));
         } else {
@@ -132,7 +128,6 @@ void pfcsInit(void)
 /*
  * DESCRIPTION
  * This function creates a PFC that uses a pipe to communicate with TRANSDUCERS.
- *
  */
 void pfc01(void)
 {
@@ -194,7 +189,6 @@ void pfc01(void)
  * DESCRIPTION
  * This function creates a PFC that uses a socket to communicate with
  * TRANSDUCERS.
- *
  */
 void pfc02(void)
 {
@@ -278,6 +272,7 @@ void pfc02(void)
       } else {
         closeClientSocket(iClientFp);                  /* Close client socket */
       }
+      mssleep(PFC_WAIT_TIME);
     }
   }
 }
@@ -285,7 +280,6 @@ void pfc02(void)
 /*
  * DESCRIPTION
  * This function creates a PFC that uses a file to communicate with TRANSDUCERS.
- *
  */
 void pfc03(void)
 {
@@ -398,14 +392,18 @@ int addLogPFC(int pfcNum, char *msg)
   return res;
 }
 
+/*
+ * DESCRIPTION
+ * This function is the handler to define the actions of SIGUSR1 signal
+ * 
+ * PARAMETERS:
+ * - sig = signal
+ */
 void shifter(int sig)
 {
   char sPidPFC[PID_LEN] = "";
   int pid, status;
   char sLogMsg[MAX_ROW_LEN_LOG];
-  extern int iPFC01Shifter;
-  extern int iPFC02Shifter;
-  extern int iPFC03Shifter;
 
   pid = getpid();
   sprintf(sLogMsg, "TEST: pid: %d - sig: %d", pid, sig);

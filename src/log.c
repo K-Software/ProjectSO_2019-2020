@@ -150,7 +150,7 @@ char* enrichMsg(char *msg)
   char *tmpMsg = malloc(PREFIX_LEN_LOG + strlen(msg) + 2);
   struct tm *t = localtime(&now);
   char tt[7];
-  sprintf(tt, ":%03d]:", tp.tv_usec/1000);
+  sprintf(tt, ":%03li]:", tp.tv_usec/1000);
   char prefix[PREFIX_LEN_LOG];
   strftime(prefix, sizeof(prefix), "[%Y%m%d-%X", localtime(&now));
   strcat(prefix, tt);

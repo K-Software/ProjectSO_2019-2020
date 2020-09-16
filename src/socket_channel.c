@@ -76,10 +76,10 @@ int readSocketChnnl(int iClientFp, char *sVel)
 int writeSocketChnnl(int iClientFp, double dVel)
 {
   char logMsg[MAX_ROW_LEN_LOG] = "";
-  char sVel[VELOCITY_VALUE_LEN + 1] = "0";
+  char sVel[VELOCITY_VALUE_LEN + 2] = "0";
 
   sprintf(sVel, "%f", dVel);
-  strcat(sVel, "#");
+  strcat(sVel, "#\n");
   if (write(iClientFp, sVel, strlen(sVel)) == -1) {        /* Write in socket */
     addLog(LOG_SOCKET, MSG_LOG_SOCKET_ERR_WRITE_TMP);
     return 1;
@@ -105,7 +105,7 @@ int writeSocketChnnl(int iClientFp, double dVel)
 int writeEndSocketChnnl(int iClientFp)
 {
   char logMsg[MAX_ROW_LEN_LOG] = "";
-  char *sVel = "END#";
+  char *sVel = "END#\n";
 
   if (write(iClientFp, sVel, strlen(sVel)) == -1) {          /* Write in pipe */
     addLog(LOG_SOCKET, MSG_LOG_SOCKET_ERR_WRITE_TMP);

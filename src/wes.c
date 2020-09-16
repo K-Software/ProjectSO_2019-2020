@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <sys/errno.h>
 #include "common.h"
+#include "error_channel.h"
 #include "log.h"
 #include "string_util.h"
 #include "time_util.h"
@@ -19,12 +20,15 @@
 #define MSG_EXIST_SPEED_PFC_01 "createWES - Exist file speed_PFC_01"
 #define MSG_EXIST_SPEED_PFC_02 "createWES - Exist file speed_PFC_02"
 #define MSG_EXIST_SPEED_PFC_03 "createWES - Exist file speed_PFC_03"
-#define MSG_LOG_PFC01_READING "UUID 01: %s - SPEED 01: %s"
-#define MSG_LOG_PFC02_READING "UUID 02: %s - SPEED 02: %s"
-#define MSG_LOG_PFC03_READING "UUID 03: %s - SPEED 03: %s"
+#define MSG_LOG_PFC01_READING "createWES - UUID 01: %s - SPEED 01: %s"
+#define MSG_LOG_PFC02_READING "createWES - UUID 02: %s - SPEED 02: %s"
+#define MSG_LOG_PFC03_READING "createWES - UUID 03: %s - SPEED 03: %s"
 #define MSG_LOG_STATUS_OK "%s - STATUS: OK        - (%s, %s, %s)"
 #define MSG_LOG_STATUS_ERROR "%s - STATUS: ERROR     - (%s, %s, %s)"
 #define MSG_LOG_STATUS_EMERGENCY "%s - STATUS: EMERGENCY - (%s, %s, %s)"
+#define MSG_LOG_ERR_SEND_ALLOK "createWES - ERROR during send ALLOK signal"
+#define MSG_LOG_ERR_SEND_ERROR "createWES - ERROR during send ERROR signal"
+#define MSG_LOG_ERR_SEND_EMERGENCY "createWES - ERROR during send EMERGENCY signal"
 #define MSG_OUTPUT_STATUS_OK "%s - STATUS: OK        - (%s, %s, %s) \n"
 #define MSG_OUTPUT_STATUS_ERROR "%s - STATUS: ERROR     - (%s, %s, %s) \n"
 #define MSG_OUTPUT_STATUS_EMERGENCY "%s - STATUS: EMERGENCY - (%s, %s, %s) \n"
@@ -35,8 +39,7 @@
 
 /*
  * DESCRIPTION
- * This function create the WES.
- *
+ * This function creates the WES process.
  */
 void createWES(void)
 {
@@ -56,8 +59,11 @@ void createWES(void)
   char sSpeed01[VELOCITY_VALUE_LEN] = "";
   char sSpeed02[VELOCITY_VALUE_LEN] = "";
   char sSpeed03[VELOCITY_VALUE_LEN] = "";
+  char sErr[ERROR_VALUE_LEN] = "";
 
   mssleep(2000);
+
+  addLog(LOG_WES, "START");
 
   while (1) {
     if (access(buildFileName(SPEED_PFC_01), F_OK ) != -1 ) {
@@ -130,14 +136,19 @@ void createWES(void)
     addLog(LOG_WES, sLogWES);
     /* END   - SPPED PFC 03  */
 
-    if (iEndSpeed01 || iEndSpeed02 || iEndSpeed03)
+    if (iEndSpeed01 || iEndSpeed02 || iEndSpeed03) {
+      addLog(LOG_WES, "END");
       break;
+    }
 
     if (strcmp(sSpeed01, sSpeed02) == 0 && strcmp(sSpeed02, sSpeed03) == 0) {
       strcpy(sLogWES, "");
       sprintf(sLogWES, MSG_LOG_STATUS_OK, sUuid, sSpeed01, sSpeed02, sSpeed03);
       printf(MSG_OUTPUT_STATUS_OK, sUuid, sSpeed01, sSpeed02, sSpeed03);
-      addLog(STATUS, sLogWES);
+      addLog(STATUS, sLogWES);                           /* STATUS: OK        */
+      if (writeErrChnnl(WES_STATUS_ALLOK) > 0) {
+        addLog(LOG_WES, MSG_LOG_ERR_SEND_ALLOK);
+      }
     } else {
       if (strcmp(sSpeed01, sSpeed02) == 0 || strcmp(sSpeed02, sSpeed03) == 0 ||
           strcmp(sSpeed01, sSpeed03) == 0) {
@@ -145,14 +156,33 @@ void createWES(void)
         sprintf(sLogWES, MSG_LOG_STATUS_ERROR, sUuid, sSpeed01, sSpeed02,
                 sSpeed03);
         printf(MSG_OUTPUT_STATUS_ERROR, sUuid, sSpeed01, sSpeed02, sSpeed03);
-        addLog(STATUS, sLogWES);
+        addLog(STATUS, sLogWES);                         /* STATUS: ERROR     */
+        strcpy(sErr, WES_STATUS_ERROR);
+        if (strcmp(sSpeed01, sSpeed02) ==0) {
+          strcat(sErr, "03");
+        } else {
+          if (strcmp(sSpeed01, sSpeed03) == 0) {
+            strcat(sErr, "02");
+          } else {
+            strcat(sErr, "01");
+          }
+        }
+        addLog(LOG_WES, sErr);
+        if (writeErrChnnl(sErr) > 0) {
+          addLog(LOG_WES, MSG_LOG_ERR_SEND_ERROR);
+        }
       } else {
         strcpy(sLogWES, "");
         sprintf(sLogWES, MSG_LOG_STATUS_EMERGENCY, sUuid, sSpeed01, sSpeed02,
                 sSpeed03);
         printf(MSG_OUTPUT_STATUS_EMERGENCY, sUuid, sSpeed01, sSpeed02,
                sSpeed03);
-        addLog(STATUS, sLogWES);
+        addLog(STATUS, sLogWES);                         /* STATUS: EMERGENCY */
+        if (writeErrChnnl(WES_STATUS_EMERGENCY) > 0) {
+          addLog(LOG_WES, MSG_LOG_ERR_SEND_EMERGENCY);
+        }
+        addLog(LOG_WES, "END");
+        break;
       }
     }
 
@@ -162,13 +192,16 @@ void createWES(void)
 
 /*
  * DESCRIPTION
- * ...
+ * This function reads always the last value insert in the stream.
  *
  * PARAMETERS
- * ...
+ * - speed_stream = Name of stream
+ * - speed = Speed
  *
  * RETURN VALUES
- * ...
+ * Upon successful completion, readSpeed returns 0. Otherwise, return a
+ * value different than 0.
+ * If return 1 there was an error during reading of speed.
  */
 int readSpeed(char *speed_stream, char *speed)
 {
