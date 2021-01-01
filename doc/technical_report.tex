@@ -49,7 +49,7 @@ Per la compilazione del progetto sono necessarie le seguneti librerie aggiuntive
 	\item \textit{libuuid-devel}.
 \end{itemize} 
 
-Per la prima installazione prima \'e necessario procedere prima alla compilazione del codice sorgente eseguendo il comando \textit{make}. Se la compilazione ha avuto esito positivo si pu\'o procedere all'installazione eseguendo il comando \textit{make install}. Se l'installazione ha avuto esito positivo si pu\'o eseguire il comando \textit{make clean}. Per disinstallare il progetto \'e sufficiente esecuire il comando \textit{make uninstall}. \par
+Per la prima installazione \'e necessario procedere alla compilazione del codice sorgente eseguendo il comando \texttt{make -f Makefile\_Ubuntu\_16\_04\_6\_LTS}. Se la compilazione ha avuto esito positivo si pu\'o procedere all'installazione eseguendo il comando \texttt{make install -f Makefile\_Ubuntu\_16\_04\_6\_LTS}. Se l'installazione ha avuto esito positivo si pu\'o eseguire il comando \texttt{make clean -f Makefile\_Ubuntu\_16\_04\_6\_LTS}. Per disinstallare il progetto \'e sufficiente esecuire il comando \texttt{make uninstall -f Makefile\_Ubuntu\_16\_04\_6\_LTS}. \par
 
 \section{Sistema obiettivo}
 Il progetto \'e stato sviluppato sulla distribuzione linux \textbf{Ubuntu 16.04.6 LTS}.
@@ -77,18 +77,18 @@ Il progetto \'e stato sviluppato sulla distribuzione linux \textbf{Ubuntu 16.04.
 \section{Progettazione e implementazione}
 Tutte le macro di carattere generale che permettono di configurare il progetto sono state definite all'interno del file \texttt{common.h} tra queste ci sono anche quelle che indicano le probabilit\'a con cui vengono lanciati i segnali \textbf{SIGINT}, \textbf{SIGSTOP}, \textbf{SIGCONT} e \textbf{SIGUSR1} e sono rispettivamente \textit{FAILURE\_SIGINT }, \textit{FAILURE\_SIGSTOP}, \textit{FAILURE\_SIGCONT} e \textit{FAILURE\_SIGUSR1}. Se vogliamo  che la probabilit\'a che un determinato segnate sia di $10^-4$ allora la macro corrispondente dovr\'a essere valorizzata con valore 10000.\par  
 
-Il progetto \'e composto da un processo principale \textit{Project} che crea 5 nuovi processi: uno per il \textit{Disconnect Switch}, uno per il \textit{WES}, uno per il \textit{Tranducers}, uno per il \textit{PFCS} e uno per il \textit{Failure Generator}. A sua volta il precesso per il \textit{PFCS} crea a sua volta 4 nuovi processi: uno per il \textit{PFC 1}, uno per il \textit{PFC 2}, uno per il \textit{PFC 3} e uno specifico che si occupa di leggere la coordinata e di sovrascrivela in uno spefico file temporaneo (\textit{reading.tmp}), i tre processi pfc leggeranno la nuova coordinata da questo file. Il processo di lettura legger\'a una coordinata al secondo mentre i tre processi pfc leggeranno il file tempoprane con una frequenza maggiore, per far capire ai pfc che si tratta di una nuova coordinata il processo lettore aggiunge un \textbf{UUID} come prefisso di ogni coordinata scritta nel file temporaneo.\par
+Il progetto \'e composto da un processo principale \textit{Project} che crea 5 nuovi processi: uno per il \textit{Disconnect Switch}, uno per il \textit{WES}, uno per il \textit{Tranducers}, uno per il \textit{PFCS} e uno per il \textit{Failure Generator}. A sua volta il precesso \textit{PFCS} crea 4 nuovi processi: uno per il \textit{PFC 1}, uno per il \textit{PFC 2}, uno per il \textit{PFC 3} e uno specifico che si occupa di leggere la coordinata e di sovrascrivela in uno spefico file temporaneo (\texttt{reading.tmp}), i tre processi pfc leggeranno la nuova coordinata da questo file. Il processo di lettura legger\'a una coordinata al secondo mentre i tre processi pfc leggeranno il file tempoprane con una frequenza maggiore, per far capire ai pfc che si tratta di una nuova coordinata il processo lettore aggiunge un \textbf{UUID} come prefisso di ogni coordinata scritta nel file temporaneo.\par
 
 Se esaminiamo la procedura di lettura nello spefico si pu\'o notare che \'e composta dalla seguenti fasi:
 \begin{itemize}
 	\item Nella prima fase viene letto il file \texttt{G18.txt} per creare il file \texttt{GPGLL.txt} che contiene solamente le righe del file \texttt{G18.txt} che iniziano con il prefisso \textit{GPGLL}.
 	\item Nella seconda fase viene letto il file creato nella prima fase \texttt{GPGLL.txt} ed il valora letto viene copiato nel file temporaneo \texttt{reading.tmp} che viene utilizzato dai processi PFC.
 \end{itemize}
-Il nuovo file \texttt{GPGLL.txt} viene gestito come una \textbf{QUEUE} una struttura dati di tipo \textbf{FIFO} (\textit{First-In-First-Out}) questo garantisce che una coordinata venga letta una ed una solo volta. La scelta di far consumare ai vari processi \textit{PFC} un file temporaneo, che contiene una solo coordinata, invece che direttamente il file \texttt{G18.txt} garantisce che nel caso in cui un processo \textit{PFC} venga momentaneamente fermato e successivamente riavviato riprenda a leggere dalla giusta coordinata e sia sincronizzato con gli altri processi.\par
+Il nuovo file \texttt{GPGLL.txt} viene gestito come una \textbf{QUEUE}, una struttura dati di tipo \textbf{FIFO} (\textit{First-In-First-Out}), questo garantisce che una coordinata venga letta una ed una solo volta. La scelta di far consumare ai vari processi \textit{PFC} un file temporaneo che contiene una solo coordinata invece che direttamente il file \texttt{G18.txt} garantisce che nel caso in cui un processo \textit{PFC} venga momentaneamente fermato e successivamente riavviato riprenda a leggere dalla giusta coordinata e sia sincronizzato con gli altri processi.\par
 
 La comunicazione tra il \textit{WES} e il \textit{Disconnect Switch} \'e stata realizzata attraverso l'utilizzo di una \texttt{pipe}.\par 
 
-Sia il processo di \textit{Failure Generator} che il processo di \textit{DisconnectSwitch} hanno la necessit\'a di inviare dei segnali a degli specifici processi durante la loro esecuzione. Per poter inviare questi segnali entrambi \textit{Failure Generator} che \textit{Disconnect Switch} devono conoscere i pid dei processi, per rispondere a questa esigenza tutti i pid dei procesi che servono sia al \textit{FailureGenerator} che al \textit{Disconnect Switch} vengono salvati in specifici file temporanei, per l'esattezza per ogni \textbf{pid} si ha uno specifoco file temporaneo. Il percorso di questi file temporanei \'e indicato all'interno del file \texttt{common.h} \par
+Sia il processo di \textit{Failure Generator} che il processo di \textit{DisconnectSwitch} hanno la necessit\'a di inviare dei segnali a degli specifici processi durante la loro esecuzione. Per poter inviare questi segnali entrambi, \textit{Failure Generator} e \textit{Disconnect Switch}, devono conoscere i pid dei processi. Per rispondere a questa esigenza tutti i pid dei procesi che servono sia al \textit{FailureGenerator} che al \textit{Disconnect Switch} vengono salvati in specifici file temporanei, per l'esattezza per ogni \textbf{pid} si ha uno specifoco file temporaneo. Il percorso di questi file temporanei \'e indicato all'interno del file \texttt{common.h} \par
 
 \newpage
 \begin{figure}[h!]
@@ -100,10 +100,10 @@ Sia il processo di \textit{Failure Generator} che il processo di \textit{Disconn
 
 In \textit{Appendice} sono riportati i file di log \textbf{STATUS\_20200131.log} e \textbf{FAILURE\_20201231.log} che mostrano un esempio di esecuzione del programma. Da questo esempio di esecuzione \'e interessante analizzare le seguenti situazioni:
 \begin{itemize}
-	\item gli errori \textit{[20201231-11:27:44:191]:07C5D725-18AA-4C49-AC74-A723F9E2FF1D}, \textit{[20201231-11:27:46:293]:3BBAB173-07F1-4EF4-AB21-F5651CF14773}, \textit{[20201231-11:27:47:344]:2E69E71B-D44F-4539-B564-77CC2687EEA0}  mostra errori di sincronizzazione di lettura delle velocit\'a;
-	\item l'errore \textit{[20201231-11:27:53:650]:B5E83716-32B7-4C30-A967-A0CA5D662934} un errore di tipo \textbf{SIGUSR1} come comferma anche la riga di log \textit{[20201231-11:27:53:042]:FAILURE - Type: SIGUSR1 - Process: PFC 02 - PID: 17734} del file \textbf{FAILURE\_20201231.log};
-	\item gli errori \textit{[20201231-11:29:00:909]:6021B4D7-41F9-4740-B584-15407E77E06E} al  \textit{[20201231-11:29:19:826]:9EBF0E68-9E13-4A50-A554-DEE6BB9F2138} sono una conseguenza del signale \textbf{SIGSTOP} e \textbf{SIGCONT} come confermato le righe di log \textit{[20201231-11:29:00:058]:FAILURE - Type: SIGSTOP - Process: PFC 01 - PID: 17733} e \textit{[20201231-11:29:20:063]:FAILURE - Type: SIGCONT - Process: PFC 01 - PID: 17733} del file \textbf{FAILURE\_20201231.log};
-	\item l'errore \textit{[20201231-11:29:27:183]:8C130A56-CBC5-4307-AB4E-39AA6EC8E9C6}  di \textbf{EMERGENCY} \'e stato generato dalla concomitanza di una mancata sincronizzazione di lettura delle velocit\'a e di un errore di tipo \textbf{SIGUSR1} come si conferma la riga di log \textit{[20201231-11:29:27:065]:FAILURE - Type: SIGUSR1 - Process: PFC 03 - PID: 17735} del file \textbf{FAILURE\_20201231.log}.
+	\item gli errori \texttt{[20201231-11:27:44:191]:07C5D725-18AA-4C49-AC74-A723F9E2FF1D}, \texttt{[20201231-11:27:46:293]:3BBAB173-07F1-4EF4-AB21-F5651CF14773}, \texttt{[20201231-11:27:47:344]:2E69E71B-D44F-4539-B564-77CC2687EEA0}  mostra errori di sincronizzazione di lettura delle velocit\'a;
+	\item l'errore \texttt{[20201231-11:27:53:650]:B5E83716-32B7-4C30-A967-A0CA5D662934} un errore di tipo \textbf{SIGUSR1} come comferma anche la riga di log \texttt{[20201231-11:27:53:042]:FAILURE - Type: SIGUSR1 - Process: PFC 02 - PID: 17734} del file \textbf{FAILURE\_20201231.log};
+	\item gli errori \texttt{[20201231-11:29:00:909]:6021B4D7-41F9-4740-B584-15407E77E06E} al  \texttt{[20201231-11:29:19:826]:9EBF0E68-9E13-4A50-A554-DEE6BB9F2138} sono una conseguenza del signale \textbf{SIGSTOP} e \textbf{SIGCONT} come confermato le righe di log \texttt{[20201231-11:29:00:058]:FAILURE - Type: SIGSTOP - Process: PFC 01 - PID: 17733} e \texttt{[20201231-11:29:20:063]:FAILURE - Type: SIGCONT - Process: PFC 01 - PID: 17733} del file \textbf{FAILURE\_20201231.log};
+	\item l'errore \texttt{[20201231-11:29:27:183]:8C130A56-CBC5-4307-AB4E-39AA6EC8E9C6}  di \textbf{EMERGENCY} \'e stato generato dalla concomitanza di una mancata sincronizzazione di lettura delle velocit\'a e di un errore di tipo \textbf{SIGUSR1} come si conferma la riga di log \texttt{[20201231-11:29:27:065]:FAILURE - Type: SIGUSR1 - Process: PFC 03 - PID: 17735} del file \textbf{FAILURE\_20201231.log}.
 \end{itemize}
 
 \newpage
@@ -317,8 +317,6 @@ In \textit{Appendice} sono riportati i file di log \textbf{STATUS\_20200131.log}
 [20201231-11:29:27:183]:8C130A56-CBC5-4307-AB4E-39AA6EC8E9C6 - STATUS: EMERGENCY 
 - (11.934375, 12.004206, 48.000000)
 \end{Verbatim}
-
-\newpage
 
 \begin{Verbatim}[frame=topline,
 			framesep=4mm,

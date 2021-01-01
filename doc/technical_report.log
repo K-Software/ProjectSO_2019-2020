@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.12.26)  1 JAN 2021 21:54
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.12.26)  1 JAN 2021 23:00
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -372,6 +372,18 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 \openout5 = `technical_report.toc'.
 
  [2]
+Overfull \hbox (30.40819pt too wide) in paragraph at lines 52--52
+\OT1/cmr/m/n/10.95 del codice sor-gente es-eguendo il co-mando \OT1/cmtt/m/n/10
+.95 make -f Makefile[]Ubuntu[]16[]04[]6[]LTS\OT1/cmr/m/n/10.95 .
+ []
+
+
+Overfull \hbox (16.8508pt too wide) in paragraph at lines 52--52
+\OT1/cmr/m/n/10.95 es-e-cuire il co-mando \OT1/cmtt/m/n/10.95 make uninstall -f
+ Makefile[]Ubuntu[]16[]04[]6[]LTS\OT1/cmr/m/n/10.95 . 
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 60--60
 []\OT1/cmr/bx/n/10.95 Realizzato
  []
@@ -449,71 +461,88 @@ pio di es-e-cuzione del pro-gramma.
  []
 
 
-Overfull \hbox (55.49565pt too wide) in paragraph at lines 103--104
-[]\OT1/cmr/m/n/10.95 gli er-rori \OT1/cmr/m/it/10.95 [20201231-11:27:44:191]:07
+Overfull \hbox (58.01263pt too wide) in paragraph at lines 103--104
+[]\OT1/cmr/m/n/10.95 gli er-rori \OT1/cmtt/m/n/10.95 [20201231-11:27:44:191]:07
 C5D725-18AA-4C49-AC74-A723F9E2FF1D\OT1/cmr/m/n/10.95 ,
  []
 
 
-Overfull \hbox (8.19164pt too wide) in paragraph at lines 103--104
-\OT1/cmr/m/it/10.95 [20201231-11:27:46:293]:3BBAB173-07F1-4EF4-AB21-F5651CF1477
+Overfull \hbox (15.338pt too wide) in paragraph at lines 103--104
+\OT1/cmtt/m/n/10.95 [20201231-11:27:46:293]:3BBAB173-07F1-4EF4-AB21-F5651CF1477
 3\OT1/cmr/m/n/10.95 ,
  []
 
 
-Overfull \hbox (4.1341pt too wide) in paragraph at lines 103--104
-\OT1/cmr/m/it/10.95 [20201231-11:27:47:344]:2E69E71B-D44F-4539-B564-77CC2687EEA
+Overfull \hbox (12.29633pt too wide) in paragraph at lines 103--104
+\OT1/cmtt/m/n/10.95 [20201231-11:27:47:344]:2E69E71B-D44F-4539-B564-77CC2687EEA
 0
  []
 
 
-Overfull \hbox (38.76659pt too wide) in paragraph at lines 104--105
-[]\OT1/cmr/m/n/10.95 l'errore \OT1/cmr/m/it/10.95 [20201231-11:27:53:650]:B5E83
+Overfull \hbox (48.88762pt too wide) in paragraph at lines 104--105
+[]\OT1/cmr/m/n/10.95 l'errore \OT1/cmtt/m/n/10.95 [20201231-11:27:53:650]:B5E83
 716-32B7-4C30-A967-A0CA5D662934
  []
 
 
-Overfull \hbox (37.95755pt too wide) in paragraph at lines 105--106
-[]\OT1/cmr/m/n/10.95 gli er-rori \OT1/cmr/m/it/10.95 [20201231-11:29:00:909]:60
+Overfull \hbox (6.54764pt too wide) in paragraph at lines 104--105
+\OT1/cmtt/m/n/10.95 [20201231-11:27:53:042]:FAILURE - Type: SIGUSR1 - Process:
+ []
+
+
+Overfull \hbox (54.97096pt too wide) in paragraph at lines 105--106
+[]\OT1/cmr/m/n/10.95 gli er-rori \OT1/cmtt/m/n/10.95 [20201231-11:29:00:909]:60
 21B4D7-41F9-4740-B584-15407E77E06E
  []
 
 
-Overfull \hbox (18.64282pt too wide) in paragraph at lines 105--106
-\OT1/cmr/m/n/10.95 al \OT1/cmr/m/it/10.95 [20201231-11:29:19:826]:9EBF0E68-9E13
+Overfull \hbox (23.24634pt too wide) in paragraph at lines 105--106
+\OT1/cmr/m/n/10.95 al \OT1/cmtt/m/n/10.95 [20201231-11:29:19:826]:9EBF0E68-9E13
 -4A50-A554-DEE6BB9F2138
  []
 
 
-Overfull \hbox (47.30792pt too wide) in paragraph at lines 105--106
-\OT1/cmr/m/it/10.95 SIGSTOP - Pro-cess: PFC 01 - PID: 17733 \OT1/cmr/m/n/10.95 
-e \OT1/cmr/m/it/10.95 [20201231-11:29:20:063]:FAILURE
+Overfull \hbox (79.51654pt too wide) in paragraph at lines 105--106
+\OT1/cmtt/m/n/10.95 SIGSTOP - Process: PFC 01 - PID: 17733 \OT1/cmr/m/n/10.95 e
+ \OT1/cmtt/m/n/10.95 [20201231-11:29:20:063]:FAILURE
+ []
+
+
+Overfull \hbox (11.18668pt too wide) in paragraph at lines 105--106
+\OT1/cmtt/m/n/10.95 - Type: SIGCONT - Process: PFC 01 - PID: 17733 \OT1/cmr/m/n
+/10.95 del file \OT1/cmr/bx/n/10.95 FAIL-
  []
 
 [6 <./images//schema.png>]
-Overfull \hbox (49.01692pt too wide) in paragraph at lines 106--107
-[]\OT1/cmr/m/n/10.95 l'errore \OT1/cmr/m/it/10.95 [20201231-11:29:27:183]:8C130
+Overfull \hbox (48.88762pt too wide) in paragraph at lines 106--107
+[]\OT1/cmr/m/n/10.95 l'errore \OT1/cmtt/m/n/10.95 [20201231-11:29:27:183]:8C130
 A56-CBC5-4307-AB4E-39AA6EC8E9C6
  []
 
 
-Overfull \hbox (22.32115pt too wide) in paragraph at lines 106--107
+Overfull \hbox (32.66199pt too wide) in paragraph at lines 106--107
 \OT1/cmr/bx/n/10.95 GUSR1 \OT1/cmr/m/n/10.95 come si con-ferma la riga di log \
-OT1/cmr/m/it/10.95 [20201231-11:29:27:065]:FAILURE
+OT1/cmtt/m/n/10.95 [20201231-11:29:27:065]:FAILURE
  []
 
-[7] [8] [9] [10] [11] [12] [13] [14] (./technical_report.aux)
+
+Overfull \hbox (11.18668pt too wide) in paragraph at lines 106--107
+\OT1/cmtt/m/n/10.95 - Type: SIGUSR1 - Process: PFC 03 - PID: 17735 \OT1/cmr/m/n
+/10.95 del file \OT1/cmr/bx/n/10.95 FAIL-
+ []
+
+[7] [8] [9] [10] [11] [12] [13] (./technical_report.aux)
 Package rerunfilecheck Info: File `technical_report.out' has not changed.
 (rerunfilecheck)             Checksum: BCD57D3983A588B300601CDFF9EA1B6D;340.
  ) 
 Here is how much of TeX's memory you used:
- 9533 strings out of 480830
- 147467 string characters out of 5903394
+ 9532 strings out of 480830
+ 147460 string characters out of 5903394
  454547 words of memory out of 5000000
  26275 multiletter control sequences out of 15000+600000
  411859 words of font info for 59 fonts, out of 8000000 for 9000
  319 hyphenation exceptions out of 8191
- 66i,9n,74p,986b,485s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 66i,9n,74p,967b,485s stack positions out of 5000i,500n,10000p,200000b,80000s
  </Users/simonecappabianca/Library/texlive/2020basic/texmf-var/fonts/pk/ljfou
 r/jknappen/ec/tcrm1095.600pk></usr/local/texlive/2020basic/texmf-dist/fonts/typ
 e1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2020basic/texmf-dist/fonts
@@ -525,10 +554,10 @@ mf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2020basic/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2020ba
 sic/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/20
 20basic/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on technical_report.pdf (14 pages, 191317 bytes).
+Output written on technical_report.pdf (13 pages, 189761 bytes).
 PDF statistics:
- 150 PDF objects out of 1000 (max. 8388607)
- 120 compressed objects within 2 object streams
- 23 named destinations out of 1000 (max. 500000)
+ 146 PDF objects out of 1000 (max. 8388607)
+ 117 compressed objects within 2 object streams
+ 22 named destinations out of 1000 (max. 500000)
  54 words of extra memory for PDF output out of 10000 (max. 10000000)
 
