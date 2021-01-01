@@ -1,0 +1,6 @@
+\contentsline {section}{\numberline {1}Istruzioni per la compilazione e esecusione}{3}{section.1}%
+\contentsline {section}{\numberline {2}Sistema obiettivo}{3}{section.2}%
+\contentsline {section}{\numberline {3}Elementi Facoltativi}{4}{section.3}%
+\contentsline {section}{\numberline {4}Progettazione e implementazione}{4}{section.4}%
+\contentsline {section}{\numberline {5}Esecuzione}{6}{section.5}%
+\contentsline {section}{\numberline {6}Appendice}{8}{section.6}%
